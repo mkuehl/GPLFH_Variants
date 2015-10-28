@@ -1,8 +1,5 @@
 package GPL; 
-
-import java.util.LinkedList; 
-
-// *************************************************************************
+  // *************************************************************************
    
 public  class  WorkSpace {
 	 // supply template actions
@@ -19,7 +16,7 @@ public  class  WorkSpace {
 
 	
     public void checkNeighborAction( Vertex vsource, 
-     Vertex vtarget ) {}
+                       Vertex vtarget ) {}
 
 
 }
