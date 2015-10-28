@@ -1,42 +1,40 @@
 package GPL; 
 
-import java.util.LinkedList; 
 import java.util.Iterator; 
 
-  // *************************************************************************
+import java.util.LinkedList; 
 
 public   class  Vertex {
 	
-
-    // dja: changed neighbors and name to public
-    public LinkedList neighbors;
+    public LinkedList adjacentNeighbors;
 
 	
-
     public String name;
 
 	
-
-    public String getName() { return name; }
-
-	
-
+   
     public Vertex() {
         VertexConstructor();
     }
 
 	
+    public String getName( ) 
+    { 
+        return name; 
+    }
 
-     private void  VertexConstructor__wrappee__DirectedWithEdges  () {
+	
+
+     private void  VertexConstructor__wrappee__DirectedWithNeighbors  () {
         name      = null;
-        neighbors = new LinkedList();
+        adjacentNeighbors = new LinkedList();
     }
 
 	
 
     public void VertexConstructor( ) 
     {
-        VertexConstructor__wrappee__DirectedWithEdges( );
+        VertexConstructor__wrappee__DirectedWithNeighbors();
         visited = false;
     }
 
@@ -48,50 +46,58 @@ public   class  Vertex {
     }
 
 	
-
-    public void addNeighbor( Neighbor n ) {
-        neighbors.add( n );
+   
+    public void addEdge( Neighbor n ) {
+        adjacentNeighbors.add( n );
     }
 
 	
 
-    public VertexIter getNeighbors() {
-        return new VertexIter() {
-                private Iterator iter = neighbors.iterator();
-                public Vertex next() { return ((Neighbor)iter.next()).end; }
-                public boolean hasNext() { return iter.hasNext(); }
-            };
-    }
 
-	
-
-    public EdgeIter getEdges()
+    public VertexIter getNeighbors( ) 
     {
-        return new EdgeIter()
+        return new VertexIter( ) 
+        {
+            private Iterator iter = adjacentNeighbors.iterator( );
+            public Vertex next( ) 
+            { 
+               return ( ( Neighbor )iter.next( ) ).neighbor; 
+            }
+
+            public boolean hasNext( ) 
             {
-                private Iterator iter = neighbors.iterator();
-                /* dja: changed to fix compile error */
-//                public EdgeIfc next() { return ((EdgeIfc)  iter.next()).edge; }
-                public EdgeIfc next( ) 
-                { 
-                  return ( ( EdgeIfc ) ( ( Neighbor ) iter.next( ) ).edge ); 
-                }
-                public boolean hasNext() { return iter.hasNext(); }
-            };
+               return iter.hasNext( ); 
+            }
+        };
     }
 
 	
 
-     private void  display__wrappee__DirectedWithEdges  () {
-        System.out.print( " Node " + getName() + " connected to: " );
+     private void  adjustAdorns__wrappee__DirectedWithNeighbors  ( Neighbor sourceNeighbor )
+      {}
 
-        for(VertexIter vxiter = getNeighbors(); vxiter.hasNext(); )
+	
+    
+    public void adjustAdorns( Neighbor sourceNeighbor )
+     {
+        Neighbor targetNeighbor = 
+                ( Neighbor )adjacentNeighbors.getLast();
+        targetNeighbor.weight = sourceNeighbor.weight;
+        adjustAdorns__wrappee__DirectedWithNeighbors( sourceNeighbor );
+    }
+
+	
+      
+     private void  display__wrappee__DirectedWithNeighbors  () 
+    {
+        System.out.print( "Node " + getName( ) + " connected to: " );
+
+        for(VertexIter vxiter = getNeighbors( ); vxiter.hasNext( ); )
          {
-            Vertex v = vxiter.next();
-            System.out.print( v.getName() + ", " );
+            Vertex v = vxiter.next( );
+            System.out.print( v.getName( ) + ", " );
         }
-
-        System.out.println();
+        System.out.println( );
     }
 
 	
@@ -99,17 +105,25 @@ public   class  Vertex {
      private void  display__wrappee__Number  ( ) 
     {
         System.out.print( " # "+ VertexNumber + " " );
-        display__wrappee__DirectedWithEdges( );
+        display__wrappee__DirectedWithNeighbors( );
     }
 
-	 // of dftNodeSearch
+	 // of bfsNodeSearch
 
-    public void display( ) {
+     private void  display__wrappee__BFS  ( ) 
+    {
         if ( visited )
-            System.out.print( "  visited" );
+            System.out.print( "  visited " );
         else
             System.out.println( " !visited " );
         display__wrappee__Number( );
+    }
+
+	
+    
+    public void display()
+    {
+        display__wrappee__BFS();
     }
 
 	
@@ -130,28 +144,57 @@ public   class  Vertex {
 
     public void nodeSearch( WorkSpace w ) 
     {
-        Vertex v;
+        int     s, c;
+        Vertex  v;
+        Vertex  header;
 
-        // Step 1: Do preVisitAction.
-        //            If we've already visited this node return
+        // Step 1: if preVisitAction is true or if we've already
+        //         visited this node
         w.preVisitAction( ( Vertex ) this );
 
         if ( visited )
-            return;
-
-        // Step 2: else remember that we've visited and
-        //         visit all neighbors
-        visited = true;
-
-        for ( VertexIter  vxiter = getNeighbors(); vxiter.hasNext(); ) 
         {
-            v = vxiter.next( );
-            w.checkNeighborAction( ( Vertex ) this, v );
-            v.nodeSearch( w );
+            return;
         }
 
-        // Step 3: do postVisitAction now
+        // Step 2: Mark as visited, put the unvisited neighbors in the queue
+        //     and make the recursive call on the first element of the queue
+        //     if there is such if not you are done
+        visited = true;
+
+        // Step 3: do postVisitAction now, you are no longer going through the
+        // node again, mark it as black
         w.postVisitAction( ( Vertex ) this );
+
+        // enqueues the vertices not visited
+        for ( VertexIter vxiter = getNeighbors( ); vxiter.hasNext( ); )
+        {
+            v = vxiter.next( );
+
+            // if your neighbor has not been visited then enqueue
+            if ( !v.visited ) 
+            {
+                GlobalVarsWrapper.Queue.add( v );
+            }
+
+        } // end of for
+
+        // while there is something in the queue
+        while( GlobalVarsWrapper.Queue.size( )!= 0 )
+        {
+            header = ( Vertex ) GlobalVarsWrapper.Queue.get( 0 );
+            GlobalVarsWrapper.Queue.remove( 0 );
+            header.nodeSearch( w );
+        }
+    }
+
+	
+    public void addWeight( Vertex end, int theWeight ) 
+    {
+        Neighbor the_neighbor = 
+                ( Neighbor ) ( end.adjacentNeighbors ).removeLast();
+        the_neighbor.weight = theWeight;
+        ( end.adjacentNeighbors ).add( the_neighbor );
     }
 
 

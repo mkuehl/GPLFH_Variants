@@ -1,33 +1,32 @@
 package GPL; 
 
-import java.util.LinkedList; 
 import java.util.Iterator; 
-import java.util.Collections; 
+
+import java.util.LinkedList; 
+//dja: added to fix compile problems when doing the performance improvements
 import java.util.Comparator; 
+import java.util.Collections; 
 
-// **********************************************************************
-
+// ***********************************************************************
+ 
 public   class  Graph {
 	
-    private LinkedList vertices;
+    public LinkedList vertices;
 
 	
-    private LinkedList edges;
-
-	
-    public static final boolean isDirected = true;
+    public static boolean isDirected = true;
 
 	
 
     public Graph() {
         vertices = new LinkedList();
-        edges = new LinkedList();
     }
 
 	
-
+ 
     // Fall back method that stops the execution of programs
-     private void  run__wrappee__DirectedWithEdges  ( Vertex s ) {}
+     private void  run__wrappee__DirectedWithNeighbors  ( Vertex s )
+      { }
 
 	
     // Executes Number Vertices
@@ -35,42 +34,66 @@ public   class  Graph {
      {
        	System.out.println("Number");
         NumberVertices( );
-        run__wrappee__DirectedWithEdges( s );
+        run__wrappee__DirectedWithNeighbors( s );
     }
 
 	
 
-    public void sortEdges(Comparator c) {
-        Collections.sort(edges, c);
-    }
-
-	
-
+    //dja: fix for compile problems during performance improvements
     public void sortVertices(Comparator c) {
         Collections.sort(vertices, c);
     }
 
 	
 
-    // Adds an edge without weights if Weighted layer is not present
-    public EdgeIfc addEdge(Vertex start,  Vertex end) {
-        Edge theEdge = new  Edge();
-        theEdge.EdgeConstructor( start, end );
-        edges.add( theEdge );
-        start.addNeighbor( new  Neighbor( end, theEdge ) );
-        //end.addNeighbor( new  Neighbor( start, theEdge ) );
 
-        return theEdge;
+    // Adds an edge without weights if Weighted layer is not present
+//    public void addAnEdge( Vertex start,  Vertex end, int weight )
+  //    {
+    //    addEdge( start, new  Neighbor( end ) );
+//    }
+
+    // Adds an edge without weights if Weighted layer is not present
+    public EdgeIfc addEdge( Vertex start,  Vertex end )
+    {
+	  Neighbor e = new Neighbor( end );
+        addEdge( start, e );
+        return e;
     }
 
 	
 
-    protected void addVertex( Vertex v ) {
+        
+    public void addVertex( Vertex v ) {
         vertices.add( v );
     }
 
 	
+   
+     private void  addEdge__wrappee__DirectedWithNeighbors  ( Vertex start,  Neighbor theNeighbor ) {
+        start.addEdge( theNeighbor );
+    }
 
+	
+      
+    public void addEdge( Vertex start,  Neighbor theNeighbor )
+    {
+        addEdge__wrappee__DirectedWithNeighbors( start,theNeighbor );
+          
+        // At this point the edges are added.
+        // If there is an adorn like weight it has to be added to
+        // the neighbor already present there
+        if ( isDirected==false ) 
+      {
+            // It has to add ONLY the weight object to the neighbor
+            Vertex end = theNeighbor.neighbor;
+            end.addWeight( end,theNeighbor.weight );
+        
+        } // of else
+    }
+
+	
+    
     // Finds a vertex given its name in the vertices list
     public  Vertex findsVertex( String theName )
       {
@@ -78,13 +101,17 @@ public   class  Graph {
 
         // if we are dealing with the root
         if ( theName==null )
-            return null;
-
-        for(VertexIter vxiter = getVertices(); vxiter.hasNext(); )
         {
-            theVertex = vxiter.next();
-            if ( theName.equals( theVertex.getName() ) )
+            return null;
+        }
+
+        for(VertexIter vxiter = getVertices( ); vxiter.hasNext( ); )
+        {
+            theVertex = vxiter.next( );
+            if ( theName.equals( theVertex.getName( ) ) )
+            {
                 return theVertex;
+            }
         }
 
         return theVertex;
@@ -92,41 +119,42 @@ public   class  Graph {
 
 	
 
-    public VertexIter getVertices() {
-        return new VertexIter() {
-                private Iterator iter = vertices.iterator();
-                public Vertex next() { return (Vertex)iter.next(); }
-                public boolean hasNext() { return iter.hasNext(); }
+    public VertexIter getVertices( ) 
+    {
+        return new VertexIter( ) 
+        {
+                private Iterator iter = vertices.iterator( );
+                public Vertex next( ) 
+                { 
+                    return (Vertex)iter.next( ); 
+                }
+                public boolean hasNext( ) 
+                { 
+                    return iter.hasNext( ); 
+                }
             };
     }
 
 	
 
-
-    public EdgeIter getEdges() {
-        return new EdgeIter() {
-                private Iterator iter = edges.iterator();
-                public EdgeIfc next() { return (EdgeIfc)iter.next(); }
-                public boolean hasNext() { return iter.hasNext(); }
-            };
-    }
-
-	
-
-    public void display() {
-        int i;
-
+    
+     private void  display__wrappee__DirectedWithNeighbors  ( ) 
+    {
         System.out.println( "******************************************" );
         System.out.println( "Vertices " );
-        for ( VertexIter vxiter = getVertices(); vxiter.hasNext() ; )
-            vxiter.next().display();
-
+        for ( VertexIter vxiter = getVertices( ); vxiter.hasNext( ) ; )
+        {
+            vxiter.next( ).display( );
+        }
         System.out.println( "******************************************" );
-        System.out.println( "Edges " );
-        for ( EdgeIter edgeiter = getEdges(); edgeiter.hasNext(); )
-            edgeiter.next().display();
 
-        System.out.println( "******************************************" );
+    }
+
+	
+    
+    public void display() 
+    {
+        display__wrappee__DirectedWithNeighbors();
     }
 
 	
@@ -143,18 +171,18 @@ public   class  Graph {
         VertexIter vxiter = getVertices( );
         if ( vxiter.hasNext( ) == false )
         {
-            return; // if there are no vertices return
+            return;
         }
 
-        // Initializing the vertices
-        while( vxiter.hasNext( ) ) 
+        // Showing the initialization process
+        while(vxiter.hasNext( ) ) 
         {
             Vertex v = vxiter.next( );
             v.init_vertex( w );
         }
 
         // Step 2: traverse neighbors of each node
-        for( vxiter = getVertices( ); vxiter.hasNext( ); ) 
+        for (vxiter = getVertices( ); vxiter.hasNext( ); ) 
         {
             Vertex v = vxiter.next( );
             if ( !v.visited ) 
@@ -162,7 +190,14 @@ public   class  Graph {
                 w.nextRegionAction( v );
                 v.nodeSearch( w );
             }
-        } 
+        } //end for
+    }
+
+	
+    // Adds an edge with weights
+    public void addAnEdge( Vertex start,  Vertex end, int weight )
+    {
+        addEdge( start, new  Neighbor( end, weight ) );
     }
 
 
